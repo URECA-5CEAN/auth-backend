@@ -5,9 +5,7 @@ import com.example.authbackend.auth.service.LoginService;
 //import com.example.authbackend.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
-import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
