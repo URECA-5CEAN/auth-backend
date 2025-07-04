@@ -21,8 +21,8 @@ public class LoginController {
 //        return loginService.login(loginData.get("username"), loginData.get("password"));
 //    }
 
-    @PostMapping("/login")
-    public Long lgoin(){
+    @PostMapping("/api/login")
+    public Long login(){
         log.info("test");
         //jwt return
         return 1L;
