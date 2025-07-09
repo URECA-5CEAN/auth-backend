@@ -18,6 +18,10 @@ jobs:
       - name: Grant execute permission for Gradle Wrapper
         run: chmod +x ./gradlew
 
+      - name: Create application-secret.properties
+        run: |
+          echo "${{ secrets.APPLICATION_SECRET_PROPERTIES }}" > src/main/resources/application-secret.properties
+
       - name: Build with Gradle
         run: ./gradlew build
       - name: Run Tests
