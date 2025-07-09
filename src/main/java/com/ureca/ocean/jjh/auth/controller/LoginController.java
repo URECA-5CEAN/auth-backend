@@ -17,7 +17,7 @@ import java.util.Map;
 @Slf4j
 public class LoginController {
     private final LoginServiceImpl loginService;
-    @PostMapping("/api/auth/health")
+    @PostMapping("/health")
     public Long health(){
         log.info("auth health checking...");
         return 1L;
