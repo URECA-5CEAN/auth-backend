@@ -1,7 +1,0 @@
-spring:
-  application:
-    name: auth-backend
-
-server :
-  port : 8081
-#myapp.jwt.secret=

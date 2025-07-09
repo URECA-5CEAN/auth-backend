@@ -1,4 +1,4 @@
-package com.example.authbackend.user.dto;
+package com.ureca.ocean.jjh.user.dto;
 
 import java.util.HashSet;
 import java.util.Map;

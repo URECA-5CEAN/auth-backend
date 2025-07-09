@@ -1,13 +1,11 @@
-package com.example.authbackend.auth.service.impl;
+package com.ureca.ocean.jjh.auth.service.impl;
 
-import com.example.authbackend.auth.dto.LoginResultDto;
-import com.example.authbackend.auth.service.LoginService;
+import com.ureca.ocean.jjh.auth.dto.LoginResultDto;
+import com.ureca.ocean.jjh.auth.service.LoginService;
 //import com.example.authbackend.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @Slf4j

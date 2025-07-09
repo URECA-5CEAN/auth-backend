@@ -1,8 +1,8 @@
-package com.example.authbackend.auth.dto;
+package com.ureca.ocean.jjh.auth.dto;
 
 
 
-import com.example.authbackend.user.dto.UserDto;
+import com.ureca.ocean.jjh.user.dto.UserDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

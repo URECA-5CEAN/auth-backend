@@ -1,4 +1,4 @@
-package com.example.authbackend;
+package com.ureca.ocean.jjh;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
