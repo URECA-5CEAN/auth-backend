@@ -20,9 +20,9 @@ import java.util.Map;
 public class LoginController {
     private final LoginServiceImpl loginService;
     @PostMapping("/health")
-    public Long health(){
+    public String health(){
         log.info("auth health checking...");
-        return 1L;
+        return "auth health check fine";
     }
 
 
