@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -25,8 +26,10 @@ public class LoginServiceImpl implements LoginService {
         log.debug("login start");
         try {
             log.info("email : " + email + "password : " + password);
+
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email,password));
             String username = authentication.getName();
+
             String token = jwtUtil.createToken(username);
             log.debug("create token :" + token);
 

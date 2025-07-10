@@ -1,10 +1,13 @@
 package com.ureca.ocean.jjh.config;
 
 
+
 import com.ureca.ocean.jjh.client.UserClient;
 import com.ureca.ocean.jjh.client.dto.UserDto;
 
 import lombok.extern.slf4j.Slf4j;
+
+
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+
 @Slf4j
 public class MyUserDetailsService implements UserDetailsService{
 
@@ -32,6 +36,7 @@ public class MyUserDetailsService implements UserDetailsService{
 					.username(userDto.getName())
 					.password(userDto.getPassword())
 					.email(userDto.getEmail())
+
 					.build();	
 			return userDetails;
 		}
