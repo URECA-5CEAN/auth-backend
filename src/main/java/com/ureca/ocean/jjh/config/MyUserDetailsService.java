@@ -1,11 +1,13 @@
 package com.ureca.ocean.jjh.config;
 
-import java.util.List;
-import java.util.Optional;
 
-import com.ureca.ocean.jjh.user.entity.User;
-import com.ureca.ocean.jjh.user.repository.UserRepository;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import com.ureca.ocean.jjh.client.UserClient;
+import com.ureca.ocean.jjh.client.dto.UserDto;
+
+import lombok.extern.slf4j.Slf4j;
+
+
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -16,24 +18,25 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+
+@Slf4j
 public class MyUserDetailsService implements UserDetailsService{
 
-	private final UserRepository userRepository;
 
+	private final UserClient userClient;
 	@Override
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 		
-		Optional<User> optionalUser = userRepository.findByEmail(email);			
-		
-		if(optionalUser.isPresent()) {
-			
-			User user = optionalUser.get();
+		UserDto userDto = userClient.getUserByEmail(email);
 
+		if(userDto != null) {
+			log.info(userDto.getPassword());
 			//MyUserDetails 사용			
 			UserDetails userDetails = MyUserDetails.builder()
-					.username(user.getName())
-					.password(user.getPassword())
-					.email(user.getEmail())
+					.username(userDto.getName())
+					.password(userDto.getPassword())
+					.email(userDto.getEmail())
+
 					.build();	
 			return userDetails;
 		}

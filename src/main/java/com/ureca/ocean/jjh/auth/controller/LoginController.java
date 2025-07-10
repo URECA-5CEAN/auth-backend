@@ -3,6 +3,7 @@ package com.ureca.ocean.jjh.auth.controller;
 import com.ureca.ocean.jjh.auth.dto.LoginResultDto;
 import com.ureca.ocean.jjh.auth.service.impl.LoginServiceImpl;
 import com.ureca.ocean.jjh.common.BaseResponseDto;
+import com.ureca.ocean.jjh.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,11 @@ public class LoginController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<BaseResponseDto<LoginResultDto>>  login(@RequestBody Map<String,String> loginRequest) { //이전에는 session을 받아서 session에 담았었는데 이제 필요 x, logout도 필요 x (expired date가 되면 logout되는 개념으로 만들었기 때문ㅇ)
+    public ResponseEntity<BaseResponseDto<?>>  login(@RequestBody(required = false) Map<String,String> loginRequest) {
+        if (loginRequest == null || loginRequest.isEmpty()) {
+            log.info("request 정보가 없습니다.");
+            return ResponseEntity.badRequest().body(BaseResponseDto.fail(ErrorCode.INTERNAL_SERVER_ERROR));
+        }
         return ResponseEntity.ok(BaseResponseDto.success(loginService.login(loginRequest.get("email"), loginRequest.get("password"))));
     }
 
