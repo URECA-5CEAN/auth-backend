@@ -2,7 +2,7 @@ package com.ureca.ocean.jjh.auth.dto;
 
 
 
-import com.ureca.ocean.jjh.user.dto.UserDto;
+import com.ureca.ocean.jjh.client.dto.UserDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

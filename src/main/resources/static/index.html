@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>로그인</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .login-form {
+            max-width: 300px;
+            margin: auto;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        #login-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #login-btn:disabled {
+            background-color: #a5b4fc;
+            cursor: not-allowed;
+        }
+        .message {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc2626;
+        }
+        .success {
+            color: #16a34a;
+        }
+    </style>
+</head>
+<body>
+<form class="login-form">
+    <input type="email" placeholder="이메일" required />
+    <input type="password" placeholder="비밀번호" required />
+    <button id="login-btn" type="submit">로그인</button>
+    <div id="message" class="message"></div>
+</form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const loginForm = document.querySelector('.login-form');
+        const loginBtn = document.getElementById('login-btn');
+        const emailInput = document.querySelector('input[type="email"]');
+        const passwordInput = document.querySelector('input[type="password"]');
+        const messageEl = document.getElementById('message');
+
+        function showError(msg) {
+            messageEl.textContent = msg;
+            messageEl.className = 'message error';
+        }
+        function showSuccess(msg) {
+            messageEl.textContent = msg;
+            messageEl.className = 'message success';
+        }
+
+        // 로그인 처리 함수
+        const handleLogin = async (e) => {
+            e.preventDefault();
+
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (!email || !password) {
+                showError('이메일과 비밀번호를 모두 입력해주세요.');
+                return;
+            }
+
+            // 로딩 상태
+            loginBtn.textContent = '로그인 중...';
+            loginBtn.disabled = true;
+            showError(''); // 메시지 초기화
+
+            try {
+                const response = await fetch('https://www.visiblego.com/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('로그인 실패');
+                }
+
+                const responseJson = await response.json();
+                const accessToken = responseJson.data.accessToken;
+                const role = responseJson.data.role;
+
+                if (accessToken) {
+                    sessionStorage.setItem('accessToken', accessToken);
+                    showSuccess('로그인 성공!');
+                    loginBtn.textContent = '로그인 완료';
+
+                    setTimeout(() => {
+                        if (role === "ROLE_ADMIN") {
+                            window.location.href = '../admin/';
+                        } else {
+                            window.location.href = '../chatbot/';
+                        }
+                    }, 1500);
+                } else {
+                    throw new Error('accessToken이 없습니다.');
+                }
+            } catch (error) {
+                console.error('로그인 오류:', error);
+                showError('로그인 중 문제가 발생했습니다.');
+
+                // 버튼 상태 복원
+                loginBtn.textContent = '로그인';
+                loginBtn.disabled = false;
+            }
+        };
+
+        // 폼 제출 이벤트
+        loginForm.addEventListener('submit', handleLogin);
+
+        // 입력 필드 유효성 검사 (실시간)
+        [emailInput, passwordInput].forEach(input => {
+            input.addEventListener('input', () => {
+                if (input.value.trim()) {
+                    input.style.borderColor = '#d1d5db';
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
