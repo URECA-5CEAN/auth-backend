@@ -28,16 +28,15 @@ public class LoginServiceImpl implements LoginService {
             log.info("email : " + email + "password : " + password);
 
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email,password));
-            String username = authentication.getName();
 
-            String token = jwtUtil.createToken(username);
+            String token = jwtUtil.createToken(email);
             log.debug("create token :" + token);
 
-            loginResultDto.setResult("success");
+            loginResultDto.setResult("login success");
             loginResultDto.setToken(token);
         }catch (Exception e) {
             e.printStackTrace();
-            loginResultDto.setResult("fail");
+            loginResultDto.setResult("login fail");
         }
 
 
