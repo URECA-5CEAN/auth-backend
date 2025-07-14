@@ -45,12 +45,13 @@ public class JwtUtil {
 
     //jwt 생성
     //username(subject),role
-    public String createToken(String username) {
+    public String createToken(String userEmail) {
         //발급일자, 만료일자
         Date now = new Date();
         log.debug("createToken");
         return Jwts.builder()
-                .subject(username)
+                .subject("user")
+                .claim("email", userEmail)
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + tokenValidDuration))
                 .signWith(secretKey, Jwts.SIG.HS256)
