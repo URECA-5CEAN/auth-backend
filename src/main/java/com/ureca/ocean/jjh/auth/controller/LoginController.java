@@ -29,10 +29,6 @@ public class LoginController {
 
     @PostMapping("/login")
     public ResponseEntity<BaseResponseDto<?>>  login(@RequestBody(required = false) Map<String,String> loginRequest) {
-        if (loginRequest == null || loginRequest.isEmpty()) {
-            log.info("request 정보가 없습니다.");
-            return ResponseEntity.badRequest().body(BaseResponseDto.fail(ErrorCode.INTERNAL_SERVER_ERROR));
-        }
         return ResponseEntity.ok(BaseResponseDto.success(loginService.login(loginRequest.get("email"), loginRequest.get("password"))));
     }
 
