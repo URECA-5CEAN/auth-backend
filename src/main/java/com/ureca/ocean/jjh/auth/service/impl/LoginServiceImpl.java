@@ -3,6 +3,8 @@ package com.ureca.ocean.jjh.auth.service.impl;
 import com.ureca.ocean.jjh.auth.dto.LoginResultDto;
 import com.ureca.ocean.jjh.auth.service.LoginService;
 
+import com.ureca.ocean.jjh.common.exception.ErrorCode;
+import com.ureca.ocean.jjh.exception.AuthException;
 import com.ureca.ocean.jjh.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,13 +32,12 @@ public class LoginServiceImpl implements LoginService {
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email,password));
 
             String token = jwtUtil.createToken(email);
-            log.debug("create token :" + token);
+            log.debug("created token :" + token);
 
             loginResultDto.setResult("login success");
             loginResultDto.setToken(token);
         }catch (Exception e) {
-            e.printStackTrace();
-            loginResultDto.setResult("login fail");
+            throw new AuthException(ErrorCode.LOGIN_FAIL);
         }
 
 
