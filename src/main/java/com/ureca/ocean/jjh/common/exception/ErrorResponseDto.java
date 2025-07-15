@@ -1,7 +1,6 @@
-package com.ureca.ocean.jjh.common;
+package com.ureca.ocean.jjh.common.exception;
 
 
-import com.ureca.ocean.jjh.common.exception.ErrorCode;
 import lombok.Builder;
 import lombok.Data;
 

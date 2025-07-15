@@ -2,6 +2,7 @@ package com.ureca.ocean.jjh.common;
 
 
 import com.ureca.ocean.jjh.common.exception.ErrorCode;
+import com.ureca.ocean.jjh.common.exception.ErrorResponseDto;
 import lombok.Builder;
 import lombok.Data;
 
@@ -21,15 +22,9 @@ public class BaseResponseDto<T> {
                 .build();
     }
 
-    public static BaseResponseDto<Void> voidSuccess() {
-        return BaseResponseDto.<Void>builder()
-                .statusCode(200)
-                .message("success")
-                .data(null)
-                .build();
-    }
-
     public static BaseResponseDto<ErrorResponseDto> fail(ErrorCode errorCode) {
+        //service layer -> global exception handler -> this method ( controller를 거치지 않음 )
+        //Errorcode에 있는 정보로 ErrorResponseDto를 만든다.
         return BaseResponseDto.<ErrorResponseDto>builder()
                 .statusCode(errorCode.getCode())
                 .message("fail")
