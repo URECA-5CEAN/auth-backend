@@ -31,8 +31,9 @@ public class JwtUtil {
     @Value("${myapp.jwt.secret}") //application.properties에 있는 값을 가져올 때, springframework에서 제공
     private String secretKeyStr;
     private SecretKey secretKey;
-    private final long tokenValidDuration = 1000L * 60 * 60 * 24;//1000L(1초 * 60초 * 60분 == 한시간) * 24 == 하루 ( 24 시간)
-
+//    private final long tokenValidDuration = 1000L * 60 * 60 * 24;//1000L(1초 * 60초 * 60분 == 한시간) * 24 == 하루 ( 24 시간)
+    //원할한 개발을 위해 token 만료 시간 두 달로 설정
+    private final long tokenValidDuration = 1000L * 60 * 60 * 24 * 60;
     @PostConstruct //JwtUtil의 생성자가 호출되고 나면, 이것이 바로 호출되게 한다. jakarata에서 제공
     private void init() {
         System.out.println(secretKeyStr);
@@ -50,20 +51,12 @@ public class JwtUtil {
         Date now = new Date();
         log.debug("createToken");
 
-        //원할한 개발을 위해 token 만료 시간 제거
         return Jwts.builder()
                 .subject("user")
                 .claim("email", userEmail)
                 .issuedAt(now)
+                .expiration(new Date(now.getTime() + tokenValidDuration))
                 .signWith(secretKey, Jwts.SIG.HS256)
                 .compact();
-
-//        return Jwts.builder()
-//                .subject("user")
-//                .claim("email", userEmail)
-//                .issuedAt(now)
-//                .expiration(new Date(now.getTime() + tokenValidDuration))
-//                .signWith(secretKey, Jwts.SIG.HS256)
-//                .compact();
     }
 }
