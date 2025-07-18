@@ -8,9 +8,9 @@ import lombok.Setter;
 @Setter
 public class LoginRequestDto {
 
-    @Schema(description = "로그인 이메일", example = "test@example.com")
+    @Schema(description = "로그인 이메일", example = "karina@gmail.com")
     private String email;
 
-    @Schema(description = "비밀번호", example = "mypassword123")
+    @Schema(description = "비밀번호", example = "karina")
     private String password;
 }
