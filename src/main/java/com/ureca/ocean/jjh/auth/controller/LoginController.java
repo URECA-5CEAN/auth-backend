@@ -1,5 +1,6 @@
 package com.ureca.ocean.jjh.auth.controller;
 
+import com.ureca.ocean.jjh.auth.dto.LoginRequestDto;
 import com.ureca.ocean.jjh.auth.dto.LoginResultDto;
 import com.ureca.ocean.jjh.auth.service.impl.LoginServiceImpl;
 import com.ureca.ocean.jjh.common.BaseResponseDto;
@@ -28,8 +29,10 @@ public class LoginController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<BaseResponseDto<?>>  login(@RequestBody Map<String,String> loginRequest) {
-        return ResponseEntity.ok(BaseResponseDto.success(loginService.login(loginRequest.get("email"), loginRequest.get("password"))));
+    public ResponseEntity<BaseResponseDto<?>> login(@RequestBody LoginRequestDto loginRequest) {
+        return ResponseEntity.ok(BaseResponseDto.success(
+                loginService.login(loginRequest.getEmail(), loginRequest.getPassword())
+        ));
     }
 
 
