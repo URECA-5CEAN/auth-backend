@@ -14,6 +14,9 @@ import org.springframework.context.annotation.Configuration;
         info = @Info(title = "Auth API", version = "v1"),
         servers = {
                 @Server(url = "http://15.164.81.45", description = "nginx address")
+        },
+        security = {
+                @SecurityRequirement(name = "AuthorizationHeader")
         }
 )
 @SecurityScheme(
