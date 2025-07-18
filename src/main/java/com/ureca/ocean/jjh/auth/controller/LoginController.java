@@ -28,7 +28,7 @@ public class LoginController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<BaseResponseDto<?>>  login(@RequestBody(required = false) Map<String,String> loginRequest) {
+    public ResponseEntity<BaseResponseDto<?>>  login(@RequestBody Map<String,String> loginRequest) {
         return ResponseEntity.ok(BaseResponseDto.success(loginService.login(loginRequest.get("email"), loginRequest.get("password"))));
     }
 
