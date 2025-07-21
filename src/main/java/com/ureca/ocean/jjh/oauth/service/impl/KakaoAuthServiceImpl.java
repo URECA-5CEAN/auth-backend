@@ -44,12 +44,12 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
 
         KakaoLoginResultDto kakaoLoginResultDto = new KakaoLoginResultDto(
                 userInfo.getKakaoAccount().getEmail(),
-                userInfo.getKakaoAccount().getProfile().getNickname(),
+                userInfo.getKakaoAccount().getProfile().nickName,
                 jwt
         );
 
         // exception 처리
-        if(userInfo.getKakaoAccount().getEmail() == null || userInfo.getKakaoAccount().getProfile().getNickname() == null) {
+        if(userInfo.getKakaoAccount().getEmail() == null || userInfo.getKakaoAccount().getProfile().nickName == null) {
             throw new AuthException(ErrorCode.KAKAO_LOGIN_FAIL);
         }
 
@@ -127,7 +127,7 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
 
             log.debug("getUserInfo success: email={}, nickname={}",
                     userInfo.getKakaoAccount().getEmail(),
-                    userInfo.getKakaoAccount().getProfile().getNickname());
+                    userInfo.getKakaoAccount().getProfile().getNickName());
 
             return userInfo;
 
