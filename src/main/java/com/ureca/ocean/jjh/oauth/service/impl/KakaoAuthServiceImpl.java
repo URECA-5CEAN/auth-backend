@@ -40,16 +40,16 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
     public KakaoLoginResultDto getKakaoLogin(String code) {
         String accessToken = getAccessToken(code);
         KakaoUserInfoDto userInfo = getUserInfo(accessToken);
-        String jwt = createJwtToken(userInfo.getKakao_account().getEmail());
+        String jwt = createJwtToken(userInfo.getKakaoAccount().getEmail());
 
         KakaoLoginResultDto kakaoLoginResultDto = new KakaoLoginResultDto(
-                userInfo.getKakao_account().getEmail(),
-                userInfo.getKakao_account().getProfile().getNickname(),
+                userInfo.getKakaoAccount().getEmail(),
+                userInfo.getKakaoAccount().getProfile().getNickname(),
                 jwt
         );
 
         // exception 처리
-        if(userInfo.getKakao_account().getEmail() == null || userInfo.getKakao_account().getProfile().getNickname() == null) {
+        if(userInfo.getKakaoAccount().getEmail() == null || userInfo.getKakaoAccount().getProfile().getNickname() == null) {
             throw new AuthException(ErrorCode.KAKAO_LOGIN_FAIL);
         }
 
@@ -117,15 +117,15 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
             KakaoUserInfoDto userInfo = response.getBody();
 
             if (userInfo == null ||
-                userInfo.getKakao_account() == null ||
-                userInfo.getKakao_account().getProfile() == null) {
+                userInfo.getKakaoAccount() == null ||
+                userInfo.getKakaoAccount().getProfile() == null) {
                 log.error("Kakao user info is incomplete or null");
                 throw new AuthException(ErrorCode.KAKAO_LOGIN_FAIL);
             }
 
             log.debug("getUserInfo success: email={}, nickname={}",
-                    userInfo.getKakao_account().getEmail(),
-                    userInfo.getKakao_account().getProfile().getNickname());
+                    userInfo.getKakaoAccount().getEmail(),
+                    userInfo.getKakaoAccount().getProfile().getNickname());
 
             return userInfo;
 
