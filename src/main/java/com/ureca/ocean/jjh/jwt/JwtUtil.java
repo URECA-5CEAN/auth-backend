@@ -48,9 +48,11 @@ public class JwtUtil {
     //username(subject),role
     public String createToken(String userEmail) {
         //발급일자, 만료일자
+        log.info("---------------------createToken 진입 완료---------------------");
         Date now = new Date();
-        log.debug("createToken");
-
+        log.debug("---------------------createToken---------------------");
+        log.info("---------------------createToken 현재 시간 생성 완료, jwt 생성 시작---------------------");
+        
         return Jwts.builder()
                 .subject("user")
                 .claim("email", userEmail)
