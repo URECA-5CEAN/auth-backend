@@ -88,6 +88,8 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
             }
             return tokenResponse.getAccessToken();
         } catch (Exception e) {
+            System.out.println("카카오 accessToken 예외 발생: " + e.getMessage());
+            e.printStackTrace();
             throw new AuthException(ErrorCode.KAKAO_RESPONSE_FAIL);
         }
     }
