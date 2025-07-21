@@ -2,6 +2,8 @@ package com.ureca.ocean.jjh.oauth.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ureca.ocean.jjh.common.exception.ErrorCode;
+import com.ureca.ocean.jjh.exception.AuthException;
 import com.ureca.ocean.jjh.oauth.dto.KakaoLoginResultDto;
 import com.ureca.ocean.jjh.oauth.service.KakaoAuthService;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +18,7 @@ import io.jsonwebtoken.security.Keys;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Optional;
 
 @Service
 public class KakaoAuthServiceImpl implements KakaoAuthService {
@@ -37,10 +40,16 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
     public KakaoLoginResultDto getKakaoLogin(String code) {
         String accessToken = getAccessToken(code);
         KakaoUserInfo userInfo = getUserInfo(accessToken);
-
         String jwt = createJwtToken(userInfo.getEmail());
 
-        return new KakaoLoginResultDto(userInfo.getEmail(), userInfo.getNickname(), jwt);
+        KakaoLoginResultDto kakaoLoginResultDto = new KakaoLoginResultDto(userInfo.getEmail(), userInfo.getNickname(), jwt);
+
+        // exception 처리
+        if(userInfo.getEmail() == null || userInfo.getNickname() == null) {
+            throw new AuthException(ErrorCode.LOGIN_FAIL);
+        }
+
+        return kakaoLoginResultDto;
     }
 
     private String getAccessToken(String code) {

@@ -18,10 +18,8 @@ public class OAuthController {
     private final KakaoAuthService kakaoAuthService;
 
     @GetMapping("kakao/callback")
-    public ResponseEntity<BaseResponseDto<?>> kakaoCallback(
-            @RequestParam("code") String code
-    ) {
-        log.info("kakao auth callback code={}", code);
+    public ResponseEntity<BaseResponseDto<?>> kakaoCallbackViaGet(@RequestParam("code") String code) {
+        log.info("kakao GET callback code={}", code);
         KakaoLoginResultDto kakaoLoginResultDto = kakaoAuthService.getKakaoLogin(code);
         return ResponseEntity.ok(BaseResponseDto.success(kakaoLoginResultDto));
     }
