@@ -30,7 +30,7 @@ public class LoginServiceImpl implements LoginService {
             log.info("email : " + email + "password : " + password);
 
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email,password));
-
+            log.info("---------------------authentication 완료---------------------");
             String token = jwtUtil.createToken(email);
             log.debug("created token :" + token);
 
