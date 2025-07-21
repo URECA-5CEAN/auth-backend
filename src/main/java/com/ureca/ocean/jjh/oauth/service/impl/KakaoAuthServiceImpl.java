@@ -1,0 +1,126 @@
+package com.ureca.ocean.jjh.oauth.service.impl;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ureca.ocean.jjh.common.exception.ErrorCode;
+import com.ureca.ocean.jjh.exception.AuthException;
+import com.ureca.ocean.jjh.oauth.dto.KakaoLoginResultDto;
+import com.ureca.ocean.jjh.oauth.dto.KakaoTokenResponseDto;
+import com.ureca.ocean.jjh.oauth.dto.KakaoUserInfoDto;
+import com.ureca.ocean.jjh.oauth.service.KakaoAuthService;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
+import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+
+@Service
+public class KakaoAuthServiceImpl implements KakaoAuthService {
+    @Value("${kakao.client-id}")
+    private String clientId;
+
+    @Value("${kakao.redirect-uri}")
+    private String redirectUri;
+
+    @Value("${kakao.client-secret}")
+    private String clientSecret;
+
+    @Value("${myapp.jwt.secret}")
+    private String jwtSecret;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Override
+    public KakaoLoginResultDto getKakaoLogin(String code) {
+        String accessToken = getAccessToken(code);
+        KakaoUserInfoDto userInfo = getUserInfo(accessToken);
+        String jwt = createJwtToken(userInfo.getEmail());
+
+        KakaoLoginResultDto kakaoLoginResultDto = new KakaoLoginResultDto(userInfo.getEmail(), userInfo.getNickname(), jwt);
+
+        // exception 처리
+        if(userInfo.getEmail() == null || userInfo.getNickname() == null) {
+            throw new AuthException(ErrorCode.KAKAO_LOGIN_FAIL);
+        }
+
+        return kakaoLoginResultDto;
+    }
+
+    private String getAccessToken(String code) {
+        String url = "https://kauth.kakao.com/oauth/token";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("grant_type", "authorization_code");
+        body.add("client_id", clientId);
+        body.add("redirect_uri", redirectUri);
+        body.add("code", code);
+        body.add("client_secret", clientSecret);
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+
+        // exception 처리
+        try {
+            ResponseEntity<KakaoTokenResponseDto> response = new RestTemplate().exchange(
+                url,
+                HttpMethod.POST,
+                request,
+                KakaoTokenResponseDto.class
+            );
+
+            KakaoTokenResponseDto tokenResponse = response.getBody();
+            if (tokenResponse == null || tokenResponse.getAccessToken() == null) {
+                throw new AuthException(ErrorCode.KAKAO_RESPONSE_FAIL);
+            }
+            return tokenResponse.getAccessToken();
+        } catch (Exception e) {
+            throw new AuthException(ErrorCode.KAKAO_RESPONSE_FAIL);
+        }
+    }
+
+    private KakaoUserInfoDto getUserInfo(String accessToken) {
+        String url = "https://kapi.kakao.com/v2/user/me";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(accessToken);
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        // exception 처리
+        try {
+            ResponseEntity<KakaoUserInfoDto> response = new RestTemplate().exchange(
+                    url,
+                    HttpMethod.GET,
+                    request,
+                    KakaoUserInfoDto.class
+            );
+
+            KakaoUserInfoDto userInfo = response.getBody();
+            if (userInfo == null || userInfo.getEmail() == null || userInfo.getNickname() == null) {
+                throw new AuthException(ErrorCode.KAKAO_RESPONSE_FAIL);
+            }
+            return userInfo;
+        } catch (Exception e) {
+            throw new AuthException(ErrorCode.KAKAO_RESPONSE_FAIL);
+        }
+    }
+
+    private String createJwtToken(String email) {
+        Instant now = Instant.now();
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(now.plus(1, ChronoUnit.HOURS)))
+                .signWith(Keys.hmacShaKeyFor(jwtSecret.getBytes()), SignatureAlgorithm.HS256)
+                .compact();
+    }
+}
