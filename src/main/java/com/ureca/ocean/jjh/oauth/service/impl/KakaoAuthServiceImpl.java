@@ -10,6 +10,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 
 @Service
 public class KakaoAuthServiceImpl implements KakaoAuthService {
@@ -22,6 +28,9 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
     @Value("${kakao.client-secret}")
     private String clientSecret;
 
+    @Value("${myapp.jwt.secret}")
+    private String jwtSecret;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
@@ -29,8 +38,7 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
         String accessToken = getAccessToken(code);
         KakaoUserInfo userInfo = getUserInfo(accessToken);
 
-        // TODO: Replace with actual JWT generation
-        String jwt = "fake-jwt-token";
+        String jwt = createJwtToken(userInfo.getEmail());
 
         return new KakaoLoginResultDto(userInfo.getEmail(), userInfo.getNickname(), jwt);
     }
@@ -95,5 +103,15 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
         public String getNickname() {
             return nickname;
         }
+    }
+
+    private String createJwtToken(String email) {
+        Instant now = Instant.now();
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(now.plus(1, ChronoUnit.HOURS)))
+                .signWith(Keys.hmacShaKeyFor(jwtSecret.getBytes()), SignatureAlgorithm.HS256)
+                .compact();
     }
 }
