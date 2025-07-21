@@ -32,7 +32,7 @@ public class LoginServiceImpl implements LoginService {
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email,password));
             log.info("---------------------authentication 완료---------------------");
             String token = jwtUtil.createToken(email);
-            log.debug("created token :" + token);
+            log.debug("---------------------created token ---------------------:" + token);
 
             loginResultDto.setResult("login success");
             loginResultDto.setToken(token);
