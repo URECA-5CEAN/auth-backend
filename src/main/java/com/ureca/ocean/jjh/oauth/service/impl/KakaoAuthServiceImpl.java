@@ -73,14 +73,16 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
 
         // exception 처리
         try {
-            ResponseEntity<KakaoTokenResponseDto> response = new RestTemplate().exchange(
+            ResponseEntity<String> response = new RestTemplate().exchange(
                 url,
                 HttpMethod.POST,
                 request,
-                KakaoTokenResponseDto.class
+                String.class
             );
 
-            KakaoTokenResponseDto tokenResponse = response.getBody();
+            System.out.println("카카오 accessToken 응답: " + response.getBody());
+
+            KakaoTokenResponseDto tokenResponse = objectMapper.readValue(response.getBody(), KakaoTokenResponseDto.class);
             if (tokenResponse == null || tokenResponse.getAccessToken() == null) {
                 throw new AuthException(ErrorCode.KAKAO_RESPONSE_FAIL);
             }
