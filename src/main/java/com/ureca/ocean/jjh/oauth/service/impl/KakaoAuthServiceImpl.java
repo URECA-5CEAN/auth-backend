@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ureca.ocean.jjh.common.exception.ErrorCode;
 import com.ureca.ocean.jjh.exception.AuthException;
 import com.ureca.ocean.jjh.oauth.dto.KakaoLoginResultDto;
+import com.ureca.ocean.jjh.oauth.dto.KakaoTokenResponseDto;
 import com.ureca.ocean.jjh.oauth.service.KakaoAuthService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -46,13 +47,15 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
 
         // exception 처리
         if(userInfo.getEmail() == null || userInfo.getNickname() == null) {
-            throw new AuthException(ErrorCode.LOGIN_FAIL);
+            throw new AuthException(ErrorCode.KAKAO_LOGIN_FAIL);
         }
 
         return kakaoLoginResultDto;
     }
 
     private String getAccessToken(String code) {
+        String url = "https://kauth.kakao.com/oauth/token";
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
@@ -63,16 +66,24 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
         body.add("code", code);
         body.add("client_secret", clientSecret);
 
-        HttpEntity<?> request = new HttpEntity<>(body, headers);
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
 
-        ResponseEntity<String> response = new RestTemplate()
-                .postForEntity("https://kauth.kakao.com/oauth/token", request, String.class);
-
+        // exception 처리
         try {
-            JsonNode jsonNode = objectMapper.readTree(response.getBody());
-            return jsonNode.get("access_token").asText();
+            ResponseEntity<KakaoTokenResponseDto> response = new RestTemplate().exchange(
+                url,
+                HttpMethod.POST,
+                request,
+                KakaoTokenResponseDto.class
+            );
+
+            KakaoTokenResponseDto tokenResponse = response.getBody();
+            if (tokenResponse == null || tokenResponse.getAccessToken() == null) {
+                throw new AuthException(ErrorCode.KAKAO_RESPONSE_FAIL);
+            }
+            return tokenResponse.getAccessToken();
         } catch (Exception e) {
-            throw new RuntimeException("Failed to get access token from Kakao", e);
+            throw new AuthException(ErrorCode.KAKAO_RESPONSE_FAIL);
         }
     }
 
