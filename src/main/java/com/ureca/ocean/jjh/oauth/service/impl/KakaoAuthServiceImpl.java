@@ -40,12 +40,16 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
     public KakaoLoginResultDto getKakaoLogin(String code) {
         String accessToken = getAccessToken(code);
         KakaoUserInfoDto userInfo = getUserInfo(accessToken);
-        String jwt = createJwtToken(userInfo.getEmail());
+        String jwt = createJwtToken(userInfo.getKakao_account().getEmail());
 
-        KakaoLoginResultDto kakaoLoginResultDto = new KakaoLoginResultDto(userInfo.getEmail(), userInfo.getNickname(), jwt);
+        KakaoLoginResultDto kakaoLoginResultDto = new KakaoLoginResultDto(
+                userInfo.getKakao_account().getEmail(),
+                userInfo.getKakao_account().getProfile().getNickname(),
+                jwt
+        );
 
         // exception 처리
-        if(userInfo.getEmail() == null || userInfo.getNickname() == null) {
+        if(userInfo.getKakao_account().getEmail() == null || userInfo.getKakao_account().getProfile().getNickname() == null) {
             throw new AuthException(ErrorCode.KAKAO_LOGIN_FAIL);
         }
 
@@ -86,31 +90,47 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
         }
     }
 
-    private KakaoUserInfoDto getUserInfo(String accessToken) {
-        String url = "https://kapi.kakao.com/v2/user/me";
+    public KakaoUserInfoDto getUserInfo(String accessToken) {
+        String requestUri = "https://kapi.kakao.com/v2/user/me";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(accessToken);
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        headers.set("Authorization", "Bearer " + accessToken);
+        headers.set("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
 
-        HttpEntity<Void> request = new HttpEntity<>(headers);
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KakaoAuthServiceImpl.class);
 
         // exception 처리
+        log.debug("getUserInfo start");
         try {
-            ResponseEntity<KakaoUserInfoDto> response = new RestTemplate().exchange(
-                    url,
-                    HttpMethod.GET,
-                    request,
-                    KakaoUserInfoDto.class
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<KakaoUserInfoDto> response = restTemplate.exchange(
+                requestUri,
+                HttpMethod.GET,
+                entity,
+                KakaoUserInfoDto.class
             );
 
             KakaoUserInfoDto userInfo = response.getBody();
-            if (userInfo == null || userInfo.getEmail() == null || userInfo.getNickname() == null) {
-                throw new AuthException(ErrorCode.KAKAO_RESPONSE_FAIL);
+
+            if (userInfo == null ||
+                userInfo.getKakao_account() == null ||
+                userInfo.getKakao_account().getProfile() == null) {
+                log.error("Kakao user info is incomplete or null");
+                throw new AuthException(ErrorCode.KAKAO_LOGIN_FAIL);
             }
+
+            log.debug("getUserInfo success: email={}, nickname={}",
+                    userInfo.getKakao_account().getEmail(),
+                    userInfo.getKakao_account().getProfile().getNickname());
+
             return userInfo;
-        } catch (Exception e) {
-            throw new AuthException(ErrorCode.KAKAO_RESPONSE_FAIL);
+
+        } catch (org.springframework.web.client.RestClientException e) {
+            throw new AuthException(ErrorCode.KAKAO_LOGIN_FAIL);
+        } finally {
+            log.debug("getUserInfo end");
         }
     }
 
