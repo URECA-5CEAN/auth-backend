@@ -1,6 +1,5 @@
 package com.ureca.ocean.jjh.oauth.service.impl;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ureca.ocean.jjh.common.exception.ErrorCode;
 import com.ureca.ocean.jjh.exception.AuthException;
@@ -20,7 +19,6 @@ import io.jsonwebtoken.security.Keys;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.Optional;
 
 @Service
 public class KakaoAuthServiceImpl implements KakaoAuthService {
