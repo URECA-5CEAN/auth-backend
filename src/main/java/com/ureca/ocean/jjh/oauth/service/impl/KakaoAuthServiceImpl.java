@@ -44,12 +44,12 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
 
         KakaoLoginResultDto kakaoLoginResultDto = new KakaoLoginResultDto(
                 userInfo.getKakaoAccount().getEmail(),
-                userInfo.getKakaoAccount().getProfile().getNickname(),
+                userInfo.getKakaoAccount().getProfile().nickName,
                 jwt
         );
 
         // exception 처리
-        if(userInfo.getKakaoAccount().getEmail() == null || userInfo.getKakaoAccount().getProfile().getNickname() == null) {
+        if(userInfo.getKakaoAccount().getEmail() == null || userInfo.getKakaoAccount().getProfile().nickName == null) {
             throw new AuthException(ErrorCode.KAKAO_LOGIN_FAIL);
         }
 
@@ -118,16 +118,26 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
 
             KakaoUserInfoDto userInfo = response.getBody();
 
-            if (userInfo == null ||
-                userInfo.getKakaoAccount() == null ||
-                userInfo.getKakaoAccount().getProfile() == null) {
-                log.error("Kakao user info is incomplete or null");
+            if (userInfo == null) {
+                log.error("Kakao userInfo is null");
                 throw new AuthException(ErrorCode.KAKAO_LOGIN_FAIL);
             }
 
-            log.debug("getUserInfo success: email={}, nickname={}",
-                    userInfo.getKakaoAccount().getEmail(),
-                    userInfo.getKakaoAccount().getProfile().getNickname());
+            if (userInfo.getKakaoAccount() == null) {
+                log.warn("KakaoAccount is null in response");
+            } else {
+                log.debug("KakaoAccount info: email={}, gender={}, name={}, phone={}",
+                        userInfo.getKakaoAccount().getEmail(),
+                        userInfo.getKakaoAccount().getGender(),
+                        userInfo.getKakaoAccount().getName(),
+                        userInfo.getKakaoAccount().getPhoneNumber());
+
+                if (userInfo.getKakaoAccount().getProfile() != null) {
+                    log.debug("Profile nickname: {}", userInfo.getKakaoAccount().getProfile().getNickName());
+                } else {
+                    log.warn("Profile is null in KakaoAccount");
+                }
+            }
 
             return userInfo;
 
