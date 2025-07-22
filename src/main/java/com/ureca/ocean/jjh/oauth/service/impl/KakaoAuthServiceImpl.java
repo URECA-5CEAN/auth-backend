@@ -43,10 +43,10 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
         String jwt = createJwtToken(userInfo.getKakaoAccount().getEmail());
 
         KakaoLoginResultDto kakaoLoginResultDto = new KakaoLoginResultDto(
-                userInfo.getKakaoAccount().name,
-                userInfo.getKakaoAccount().getProfile().nickName,
+                userInfo.getKakaoAccount().getName(),
+                userInfo.getKakaoAccount().getProfile().getNickName(),
                 userInfo.getKakaoAccount().getEmail(),
-                userInfo.getKakaoAccount().gender,
+                userInfo.getKakaoAccount().getGender(),
                 jwt
         );
 
