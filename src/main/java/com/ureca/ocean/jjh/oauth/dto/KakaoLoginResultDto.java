@@ -1,8 +1,10 @@
 package com.ureca.ocean.jjh.oauth.dto;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class KakaoLoginResultDto {
     private String name;
     private String nickname;
@@ -11,7 +13,7 @@ public class KakaoLoginResultDto {
     private String jwtToken;
 
     public KakaoLoginResultDto(
-            String email, String nickname, String jwtToken, String name, String gender
+            String name, String nickname, String email, String gender, String jwtToken
     ) {
         this.name = name;
         this.nickname = nickname;
