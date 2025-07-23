@@ -1,6 +1,8 @@
 package com.ureca.ocean.jjh.oauth.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ureca.ocean.jjh.client.UserClient;
+import com.ureca.ocean.jjh.client.dto.UserDto;
 import com.ureca.ocean.jjh.common.exception.ErrorCode;
 import com.ureca.ocean.jjh.exception.AuthException;
 import com.ureca.ocean.jjh.oauth.dto.KakaoLoginResultDto;
@@ -22,6 +24,9 @@ import java.util.Date;
 
 @Service
 public class KakaoAuthServiceImpl implements KakaoAuthService {
+
+    UserClient userClient;
+
     @Value("${kakao.client-id}")
     private String clientId;
 
@@ -40,6 +45,19 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
     public KakaoLoginResultDto getKakaoLogin(String code) {
         String accessToken = getAccessToken(code);
         KakaoUserInfoDto userInfo = getUserInfo(accessToken);
+
+        // 이메일 중복 여부 확인
+        try {
+            UserDto existingUser = userClient.getUserByEmail(userInfo.getKakaoAccount().getEmail());
+
+            // 일반 계정이 있으면 카카오 로그인 차단
+            if (existingUser.getPassword() != null && !existingUser.getPassword().isBlank()) {
+                throw new AuthException(ErrorCode.NORMAL_USER_ALREADY_EXIST);
+            }
+        } catch (Exception ex) {
+            // 사용자 없음 → 카카오 계정 신규 회원가입
+        }
+
         String jwt = createJwtToken(userInfo.getKakaoAccount().getEmail());
 
         KakaoLoginResultDto kakaoLoginResultDto = new KakaoLoginResultDto(

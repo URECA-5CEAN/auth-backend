@@ -13,7 +13,9 @@ public enum ErrorCode {
 
     //user_backend : 20000
     NOT_FOUND_USER(20001,"NOT_FOUND_USER","해당 사용자가 없습니다."),
-    USER_ALREADY_EXIST(20002,"USER_ALREADY_EXIST","해당 사용자가 이미 있습니다.");
+    USER_ALREADY_EXIST(20002,"USER_ALREADY_EXIST","해당 사용자가 이미 있습니다."),
+    NORMAL_USER_ALREADY_EXIST(20003,"NORMAL_USER_ALREADY_EXIST","일반 로그인에 해당 사용자가 이미 있습니다."),
+    ;
 
     //map_backend : 30000
 
