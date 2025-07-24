@@ -49,7 +49,6 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
 
 
     @Override
-    @Override
     public KakaoLoginResultDto getKakaoLogin(String code) {
         String accessToken = getAccessToken(code);
         KakaoUserInfoDto userInfo = getUserInfo(accessToken);
@@ -57,16 +56,16 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
         try {
             UserNicknameDto existingUser = userClient.getUserAndNicknameByEmail(userInfo.getKakaoAccount().getEmail());
 
-            String nickname = existingUser.getNickname();
-            if (nickname != null && nickname.startsWith("[Kakao]")) {
+            String nickname = "[Kakao] " + userInfo.getKakaoAccount().getProfile().getNickName();
+            if (existingUser.getNickname() != null && existingUser.getNickname().startsWith("[Kakao]")) {
                 // 카카오 유저 - 로그인 처리
                 String jwt = createJwtToken(existingUser.getEmail());
                 return KakaoLoginResultDto.builder()
                         .result("login success")
-                        .name(existingUser.getName())
+                        .name(userInfo.getKakaoAccount().getName())
                         .nickname(nickname)
-                        .email(existingUser.getEmail())
-                        .gender(existingUser.getGender().name())
+                        .email(userInfo.getKakaoAccount().getEmail())
+                        .gender(userInfo.getKakaoAccount().getGender())
                         .token(jwt)
                         .build();
             } else {
