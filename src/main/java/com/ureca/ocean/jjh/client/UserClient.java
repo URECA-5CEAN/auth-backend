@@ -30,4 +30,8 @@ public class UserClient {
         return userDto;
     }
 
+    public void signup(com.ureca.ocean.jjh.oauth.dto.SignUpRequestDto signupRequestDto) {
+        String url = DomainConstant.USER_URL + "api/user/signup";
+        restTemplate.postForEntity(url, signupRequestDto, Void.class);
+    }
 }

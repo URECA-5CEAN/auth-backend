@@ -3,11 +3,13 @@ package com.ureca.ocean.jjh.oauth.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ureca.ocean.jjh.client.UserClient;
 import com.ureca.ocean.jjh.client.dto.UserDto;
+import com.ureca.ocean.jjh.common.entity.enums.Gender;
 import com.ureca.ocean.jjh.common.exception.ErrorCode;
 import com.ureca.ocean.jjh.exception.AuthException;
 import com.ureca.ocean.jjh.oauth.dto.KakaoLoginResultDto;
 import com.ureca.ocean.jjh.oauth.dto.KakaoTokenResponseDto;
 import com.ureca.ocean.jjh.oauth.dto.KakaoUserInfoDto;
+import com.ureca.ocean.jjh.oauth.dto.SignUpRequestDto;
 import com.ureca.ocean.jjh.oauth.service.KakaoAuthService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -21,6 +23,7 @@ import io.jsonwebtoken.security.Keys;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.UUID;
 
 @Service
 public class KakaoAuthServiceImpl implements KakaoAuthService {
@@ -56,6 +59,15 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
             }
         } catch (Exception ex) {
             // 사용자 없음 → 카카오 계정 신규 회원가입
+            SignUpRequestDto signupRequestDto = SignUpRequestDto.builder()
+                .email(userInfo.getKakaoAccount().getEmail())
+                .name(userInfo.getKakaoAccount().getName())
+                .nickname(userInfo.getKakaoAccount().getProfile().getNickName())
+                .gender(Gender.valueOf(userInfo.getKakaoAccount().getGender()))
+                .password(UUID.randomUUID().toString()) // random password for oauth users
+                .build();
+
+            userClient.signup(signupRequestDto);
         }
 
         String jwt = createJwtToken(userInfo.getKakaoAccount().getEmail());
