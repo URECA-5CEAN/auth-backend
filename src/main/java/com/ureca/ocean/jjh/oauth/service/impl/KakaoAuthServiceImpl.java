@@ -102,7 +102,7 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
                 .name(userInfo.getKakaoAccount().getName())
                 .nickname(userInfo.getKakaoAccount().getProfile().getNickName())
                 .gender(getGenderSafely(userInfo.getKakaoAccount().getGender()))
-                .password(passwordEncoder.encode("{kakao}" + UUID.randomUUID()))
+                .password("{kakao}" + passwordEncoder.encode(UUID.randomUUID().toString()))
                 .build();
 
         try {
