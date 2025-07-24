@@ -73,7 +73,6 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
                 throw new AuthException(ErrorCode.NORMAL_USER_ALREADY_EXIST);
             }
         } catch (Exception ex) {
-            if (ex.getMessage() != null && ex.getMessage().contains("404")) {
                 // 이메일 없음 - 회원가입 유도
                 return KakaoLoginResultDto.builder()
                         .result("signup required")
@@ -83,9 +82,6 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
                         .gender(userInfo.getKakaoAccount().getGender())
                         .token(accessToken)
                         .build();
-            } else {
-                throw new AuthException(ErrorCode.KAKAO_LOGIN_FAIL);
-            }
         }
     }
 
