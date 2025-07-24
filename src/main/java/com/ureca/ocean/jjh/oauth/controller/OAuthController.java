@@ -6,10 +6,7 @@ import com.ureca.ocean.jjh.oauth.service.KakaoAuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 
 @RequestMapping("api/auth")
@@ -18,9 +15,20 @@ public class OAuthController {
     private final KakaoAuthService kakaoAuthService;
 
     @GetMapping("kakao/callback")
-    public ResponseEntity<BaseResponseDto<?>> kakaoCallbackViaGet(@RequestParam("code") String code) {
-        log.info("kakao GET callback code={}", code);
+    public ResponseEntity<BaseResponseDto<?>> kakaoCallbackViaGet(
+            @RequestParam("code") String code
+    ) {
         KakaoLoginResultDto kakaoLoginResultDto = kakaoAuthService.getKakaoLogin(code);
+
+        return ResponseEntity.ok(BaseResponseDto.success(kakaoLoginResultDto));
+    }
+
+    @PostMapping("kakao/signup")
+    public ResponseEntity<BaseResponseDto<?>> kakaoSignup(
+            @RequestParam("accessToken") String accessToken
+    ) {
+        KakaoLoginResultDto kakaoLoginResultDto = kakaoAuthService.kakaoSignupWithToken(accessToken);
+
         return ResponseEntity.ok(BaseResponseDto.success(kakaoLoginResultDto));
     }
 }

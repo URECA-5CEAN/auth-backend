@@ -4,4 +4,6 @@ import com.ureca.ocean.jjh.oauth.dto.KakaoLoginResultDto;
 
 public interface KakaoAuthService {
     KakaoLoginResultDto getKakaoLogin(String code);
+
+    KakaoLoginResultDto kakaoSignupWithToken(String accessToken);
 }
