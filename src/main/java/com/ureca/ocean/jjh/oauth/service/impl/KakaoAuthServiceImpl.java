@@ -56,39 +56,39 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
 
         // 이메일 중복 여부 확인
         try {
-            UserNicknameDto rawUser = userClient.getUserAndNicknameByEmail(userInfo.getKakaoAccount().getEmail());
-            if (rawUser.getNickname() == null || !rawUser.getNickname().startsWith("[Kakao]")) {
+            UserNicknameDto existingUser = userClient.getUserAndNicknameByEmail(userInfo.getKakaoAccount().getEmail());
+
+            // 닉네임이 [Kakao]로 시작하는지 확인
+            if (existingUser.getNickname() != null && existingUser.getNickname().startsWith("[Kakao]")) {
+                // 로그인 처리
+                String jwt = createJwtToken(userInfo.getKakaoAccount().getEmail());
+
+                return KakaoLoginResultDto.builder()
+                        .result("login success")
+                        .name(userInfo.getKakaoAccount().getName())
+                        .nickname(existingUser.getNickname())
+                        .email(userInfo.getKakaoAccount().getEmail())
+                        .gender(userInfo.getKakaoAccount().getGender())
+                        .token(jwt)
+                        .build();
+            } else {
                 throw new AuthException(ErrorCode.NORMAL_USER_ALREADY_EXIST);
             }
         } catch (Exception ex) {
             if (ex.getMessage() != null && ex.getMessage().contains("404")) {
-                // 정상 회원가입 경로
-                kakaoLoginResultDto = new KakaoLoginResultDto(
-                        "signup required",
-                        userInfo.getKakaoAccount().getName(),
-                        userInfo.getKakaoAccount().getProfile().getNickName(),
-                        userInfo.getKakaoAccount().getEmail(),
-                        userInfo.getKakaoAccount().getGender(),
-                        // token : accessToken
-                        accessToken
-                );
-                return kakaoLoginResultDto;
+                // 이메일이 없을 경우 회원가입 유도
+                return KakaoLoginResultDto.builder()
+                        .result("signup required")
+                        .name(userInfo.getKakaoAccount().getName())
+                        .nickname("[Kakao] " + userInfo.getKakaoAccount().getProfile().getNickName())
+                        .email(userInfo.getKakaoAccount().getEmail())
+                        .gender(userInfo.getKakaoAccount().getGender())
+                        .token(accessToken) // accessToken 그대로 반환
+                        .build();
+            } else {
+                throw new AuthException(ErrorCode.KAKAO_LOGIN_FAIL);
             }
         }
-
-        // 카카오 로그인 성공
-        String jwt = createJwtToken(userInfo.getKakaoAccount().getEmail());
-
-        kakaoLoginResultDto = new KakaoLoginResultDto(
-                "login success",
-                userInfo.getKakaoAccount().getName(),
-                userInfo.getKakaoAccount().getProfile().getNickName(),
-                userInfo.getKakaoAccount().getEmail(),
-                userInfo.getKakaoAccount().getGender(),
-                jwt
-        );
-
-        return kakaoLoginResultDto;
     }
 
     // Sign up
