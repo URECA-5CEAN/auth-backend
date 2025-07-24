@@ -97,12 +97,14 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
         KakaoUserInfoDto userInfo = getUserInfo(accessToken);
 
         // 회원가입 DTO 구성
+        String rawPassword = UUID.randomUUID().toString();
+        String encodedPassword = passwordEncoder.encode(rawPassword);
         SignUpRequestDto signUpRequestDto = SignUpRequestDto.builder()
                 .email(userInfo.getKakaoAccount().getEmail())
                 .name(userInfo.getKakaoAccount().getName())
                 .nickname(userInfo.getKakaoAccount().getProfile().getNickName())
                 .gender(getGenderSafely(userInfo.getKakaoAccount().getGender()))
-                .password("{kakao}" + passwordEncoder.encode(UUID.randomUUID().toString()))
+                .password("{kakao}" + encodedPassword)
                 .build();
 
         try {
