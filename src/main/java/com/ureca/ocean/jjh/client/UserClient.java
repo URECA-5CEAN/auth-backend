@@ -1,5 +1,6 @@
 package com.ureca.ocean.jjh.client;
 
+import com.ureca.ocean.jjh.client.dto.UserNicknameDto;
 import com.ureca.ocean.jjh.common.BaseResponseDto;
 import com.ureca.ocean.jjh.common.constant.DomainConstant;
 import com.ureca.ocean.jjh.client.dto.UserDto;
@@ -17,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 public class UserClient {
     private final RestTemplate restTemplate;
+
     public UserDto getUserByEmail(String email) {
         String url = DomainConstant.USER_URL + "api/user?email="+ email ;
         System.out.println("url : "+ url);
@@ -31,14 +33,34 @@ public class UserClient {
         return userDto;
     }
 
-    public UserDto signup(SignUpRequestDto signupRequestDto) {
-        String url = DomainConstant.USER_URL + "api/user/signup";
-        ResponseEntity<BaseResponseDto<UserDto>> response = restTemplate.exchange(
-            url,
-            HttpMethod.POST,
-            new org.springframework.http.HttpEntity<>(signupRequestDto),
-            new ParameterizedTypeReference<BaseResponseDto<UserDto>>() {}
+    // 닉네임을 받아오기 위한 눈물나는 노력
+    public UserNicknameDto getUserAndNicknameByEmail(String email) {
+        String url = DomainConstant.USER_URL + "api/user?email="+ email ;
+        System.out.println("url : "+ url);
+        ResponseEntity<BaseResponseDto<UserNicknameDto>> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<BaseResponseDto<UserNicknameDto>>() {}
         );
-        return response.getBody().getData();
+        UserNicknameDto userNicknameDto = response.getBody().getData();
+        return userNicknameDto;
+    }
+
+    public UserDto signup(SignUpRequestDto signUpRequestDto) {
+        String url = DomainConstant.USER_URL + "api/user/signup";
+
+        try {
+            ResponseEntity<BaseResponseDto<UserDto>> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                new org.springframework.http.HttpEntity<>(signUpRequestDto),
+                new ParameterizedTypeReference<BaseResponseDto<UserDto>>() {}
+            );
+
+            return response.getBody().getData();
+        } catch (Exception e) {
+            throw e;
+        }
     }
 }
