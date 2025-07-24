@@ -79,4 +79,4 @@ jobs:
           done
 
           nohup java -jar ${{ secrets.EC2_APP_DIR }}/${{ secrets.APP_NAME }} --server.port=8081 > ~/app.log 2>&1 &
-        EOF
+          EOF
