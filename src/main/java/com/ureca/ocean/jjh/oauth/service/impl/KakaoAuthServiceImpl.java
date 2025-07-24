@@ -59,7 +59,7 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
             UserDto existingUser = userClient.getUserByEmail(userInfo.getKakaoAccount().getEmail());
 
             // 일반 로그인 계정이면 카카오 로그인 차단
-            if (!"kakao".equals(existingUser.getOauthProvider())) {
+            if (!existingUser.getPassword().startsWith("{kakao}")) {
                 throw new AuthException(ErrorCode.NORMAL_USER_ALREADY_EXIST);
             }
         } catch (Exception ex) {
@@ -103,7 +103,6 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
                 .nickname(userInfo.getKakaoAccount().getProfile().getNickName())
                 .gender(getGenderSafely(userInfo.getKakaoAccount().getGender()))
                 .password(passwordEncoder.encode("{kakao}" + UUID.randomUUID()))
-                .oauthProvider("kakao")
                 .build();
 
         try {
