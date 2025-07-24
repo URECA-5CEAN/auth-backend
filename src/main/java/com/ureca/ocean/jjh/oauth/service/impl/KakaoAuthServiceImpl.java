@@ -223,7 +223,7 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
 
     private Gender getGenderSafely(String genderStr) {
         try {
-            return Gender.valueOf(genderStr.toUpperCase());
+            return Gender.valueOf(genderStr.toLowerCase());
         } catch (IllegalArgumentException | NullPointerException e) {
             throw new AuthException(ErrorCode.INVALID_GENDER);
         }
