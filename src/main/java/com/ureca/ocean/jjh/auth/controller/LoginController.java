@@ -34,6 +34,4 @@ public class LoginController {
                 loginService.login(loginRequest.getEmail(), loginRequest.getPassword())
         ));
     }
-
-
 }

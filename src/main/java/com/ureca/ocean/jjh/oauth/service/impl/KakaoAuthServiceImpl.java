@@ -11,6 +11,7 @@ import com.ureca.ocean.jjh.oauth.dto.KakaoTokenResponseDto;
 import com.ureca.ocean.jjh.oauth.dto.KakaoUserInfoDto;
 import com.ureca.ocean.jjh.oauth.dto.SignUpRequestDto;
 import com.ureca.ocean.jjh.oauth.service.KakaoAuthService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ import java.util.UUID;
 @Service
 public class KakaoAuthServiceImpl implements KakaoAuthService {
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
     UserClient userClient;
 
     @Value("${kakao.client-id}")
@@ -42,37 +44,39 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
     @Value("${myapp.jwt.secret}")
     private String jwtSecret;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public KakaoLoginResultDto getKakaoLogin(String code) {
         String accessToken = getAccessToken(code);
         KakaoUserInfoDto userInfo = getUserInfo(accessToken);
+        KakaoLoginResultDto kakaoLoginResultDto;
 
         // 이메일 중복 여부 확인
         try {
             UserDto existingUser = userClient.getUserByEmail(userInfo.getKakaoAccount().getEmail());
 
-            // 일반 계정이 있으면 카카오 로그인 차단
-            if (existingUser.getPassword() != null && !existingUser.getPassword().isBlank()) {
+            // 일반 로그인 계정이면 카카오 로그인 차단
+            if (!existingUser.getPassword().startsWith("{kakao}")) {
                 throw new AuthException(ErrorCode.NORMAL_USER_ALREADY_EXIST);
             }
         } catch (Exception ex) {
-            // 사용자 없음 → 카카오 계정 신규 회원가입
-            SignUpRequestDto signupRequestDto = SignUpRequestDto.builder()
-                .email(userInfo.getKakaoAccount().getEmail())
-                .name(userInfo.getKakaoAccount().getName())
-                .nickname(userInfo.getKakaoAccount().getProfile().getNickName())
-                .gender(Gender.valueOf(userInfo.getKakaoAccount().getGender()))
-                .password(UUID.randomUUID().toString()) // random password for oauth users
-                .build();
-
-            userClient.signup(signupRequestDto);
+            // 사용자 없음 → 회원가입 분기: 회원정보 반환
+            kakaoLoginResultDto = new KakaoLoginResultDto(
+                    "signup required",
+                    userInfo.getKakaoAccount().getName(),
+                    userInfo.getKakaoAccount().getProfile().getNickName(),
+                    userInfo.getKakaoAccount().getEmail(),
+                    userInfo.getKakaoAccount().getGender(),
+                    null
+            );
+            return kakaoLoginResultDto;
         }
 
+        // 카카오 로그인 성공
         String jwt = createJwtToken(userInfo.getKakaoAccount().getEmail());
 
-        KakaoLoginResultDto kakaoLoginResultDto = new KakaoLoginResultDto(
+        kakaoLoginResultDto = new KakaoLoginResultDto(
+                "login success",
                 userInfo.getKakaoAccount().getName(),
                 userInfo.getKakaoAccount().getProfile().getNickName(),
                 userInfo.getKakaoAccount().getEmail(),
@@ -80,12 +84,35 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
                 jwt
         );
 
-        // exception 처리
-        if(userInfo.getKakaoAccount().getEmail() == null || userInfo.getKakaoAccount().getProfile().nickName == null) {
-            throw new AuthException(ErrorCode.KAKAO_LOGIN_FAIL);
-        }
-
         return kakaoLoginResultDto;
+    }
+
+    // Sign up
+    @Override
+    public KakaoLoginResultDto kakaoSignupWithToken(String accessToken) {
+        KakaoUserInfoDto userInfo = getUserInfo(accessToken);
+
+        // 회원가입 DTO 구성
+        SignUpRequestDto signupRequestDto = SignUpRequestDto.builder()
+                .email(userInfo.getKakaoAccount().getEmail())
+                .name(userInfo.getKakaoAccount().getName())
+                .nickname(userInfo.getKakaoAccount().getProfile().getNickName())
+                .gender(Gender.valueOf(userInfo.getKakaoAccount().getGender()))
+                .password("{kakao}" + UUID.randomUUID())  // 패스워드 대체 마커
+                .build();
+
+        userClient.signup(signupRequestDto);
+
+        // 회원가입 후 JWT 발급
+        String jwt = createJwtToken(userInfo.getKakaoAccount().getEmail());
+
+        return KakaoLoginResultDto.builder()
+                .name(userInfo.getKakaoAccount().getName())
+                .nickname(userInfo.getKakaoAccount().getProfile().getNickName())
+                .email(userInfo.getKakaoAccount().getEmail())
+                .gender(userInfo.getKakaoAccount().getGender())
+                .token(jwt)
+                .build();
     }
 
     private String getAccessToken(String code) {
