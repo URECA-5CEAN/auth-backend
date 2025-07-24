@@ -101,7 +101,11 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
                 .password("{kakao}" + UUID.randomUUID())  // 패스워드 대체 마커
                 .build();
 
-        userClient.signup(signupRequestDto);
+        try {
+            userClient.signup(signupRequestDto);
+        } catch (Exception e) {
+            throw new AuthException(ErrorCode.USER_SIGNUP_FAIL);
+        }
 
         // 회원가입 후 JWT 발급
         String jwt = createJwtToken(userInfo.getKakaoAccount().getEmail());
