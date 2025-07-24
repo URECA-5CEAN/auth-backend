@@ -34,14 +34,6 @@ public class UserClient {
     public UserDto signup(SignUpRequestDto signUpRequestDto) {
         String url = DomainConstant.USER_URL + "api/user/signup";
 
-        // Debug log for outgoing request
-        log.debug("📤 [UserClient] 회원가입 요청 URL: {}", url);
-        log.debug("📧 email: {}", signUpRequestDto.getEmail());
-        log.debug("👤 name: {}", signUpRequestDto.getName());
-        log.debug("📝 nickname: {}", signUpRequestDto.getNickname());
-        log.debug("🚻 gender: {}", signUpRequestDto.getGender());
-        log.debug("🔒 password: {}", signUpRequestDto.getPassword());
-
         try {
             ResponseEntity<BaseResponseDto<UserDto>> response = restTemplate.exchange(
                 url,
@@ -50,13 +42,8 @@ public class UserClient {
                 new ParameterizedTypeReference<BaseResponseDto<UserDto>>() {}
             );
 
-            if (response.getBody() == null || response.getBody().getData() == null) {
-                throw new RuntimeException("❗️응답 본문이 null입니다.");
-            }
-
             return response.getBody().getData();
         } catch (Exception e) {
-            log.error("❌ [UserClient] 회원가입 요청 실패", e);
             throw e;
         }
     }

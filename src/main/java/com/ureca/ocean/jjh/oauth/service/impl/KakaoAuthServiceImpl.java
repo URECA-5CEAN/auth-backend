@@ -14,6 +14,7 @@ import com.ureca.ocean.jjh.oauth.service.KakaoAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -32,6 +33,7 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final UserClient userClient;
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${kakao.client-id}")
     private String clientId;
@@ -57,7 +59,7 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
             UserDto existingUser = userClient.getUserByEmail(userInfo.getKakaoAccount().getEmail());
 
             // 일반 로그인 계정이면 카카오 로그인 차단
-            if (!existingUser.getPassword().startsWith("{kakao}")) {
+            if (!"kakao".equals(existingUser.getOauthProvider())) {
                 throw new AuthException(ErrorCode.NORMAL_USER_ALREADY_EXIST);
             }
         } catch (Exception ex) {
@@ -100,21 +102,13 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
                 .name(userInfo.getKakaoAccount().getName())
                 .nickname(userInfo.getKakaoAccount().getProfile().getNickName())
                 .gender(getGenderSafely(userInfo.getKakaoAccount().getGender()))
-                .password("{kakao}" + UUID.randomUUID())  // 패스워드 대체 마커
+                .password(passwordEncoder.encode("{kakao}" + UUID.randomUUID()))
+                .oauthProvider("kakao")
                 .build();
 
-        // 디버깅 코드
-        System.out.println("🔍 [회원가입 요청 DTO]");
-        System.out.println("📧 email: " + signUpRequestDto.getEmail());
-        System.out.println("👤 name: " + signUpRequestDto.getName());
-        System.out.println("📝 nickname: " + signUpRequestDto.getNickname());
-        System.out.println("🚻 gender: " + signUpRequestDto.getGender());
-        System.out.println("🔒 password: " + signUpRequestDto.getPassword());
         try {
             userClient.signup(signUpRequestDto);
         } catch (Exception e) {
-            System.out.println("❌ userClient.signup() 실패");
-            e.printStackTrace(); // 오류 상세 로그 출력
             throw new AuthException(ErrorCode.USER_SIGNUP_FAIL);
         }
 
