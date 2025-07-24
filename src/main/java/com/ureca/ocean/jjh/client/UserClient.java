@@ -3,6 +3,7 @@ package com.ureca.ocean.jjh.client;
 import com.ureca.ocean.jjh.common.BaseResponseDto;
 import com.ureca.ocean.jjh.common.constant.DomainConstant;
 import com.ureca.ocean.jjh.client.dto.UserDto;
+import com.ureca.ocean.jjh.oauth.dto.SignUpRequestDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
@@ -30,8 +31,14 @@ public class UserClient {
         return userDto;
     }
 
-    public void signup(com.ureca.ocean.jjh.oauth.dto.SignUpRequestDto signupRequestDto) {
+    public UserDto signup(SignUpRequestDto signupRequestDto) {
         String url = DomainConstant.USER_URL + "api/user/signup";
-        restTemplate.postForEntity(url, signupRequestDto, Void.class);
+        ResponseEntity<BaseResponseDto<UserDto>> response = restTemplate.exchange(
+            url,
+            HttpMethod.POST,
+            new org.springframework.http.HttpEntity<>(signupRequestDto),
+            new ParameterizedTypeReference<BaseResponseDto<UserDto>>() {}
+        );
+        return response.getBody().getData();
     }
 }
