@@ -21,7 +21,6 @@ jobs:
       - name: Create application-secret.properties
         run: |
           echo "${{ secrets.APPLICATION_SECRET_PROPERTIES }}" > src/main/resources/application-secret.properties
-
       - name: Build with Gradle
         run: ./gradlew build
       - name: Run Tests
@@ -44,8 +43,7 @@ jobs:
 
       - name: Create application-secret.properties
         run: |
-         echo "${{ secrets.APPLICATION_SECRET_PROPERTIES }}" > src/main/resources/application-secret.properties
-
+          echo "${{ secrets.APPLICATION_SECRET_PROPERTIES }}" > src/main/resources/application-secret.properties
       - name: Build Spring Boot App
         run: ./gradlew clean build -x test
 
@@ -56,35 +54,29 @@ jobs:
         run: |
           echo "${{ secrets.EC2_KEY }}" > key.pem
           chmod 400 key.pem
-
       - name: Ensure remote app directory exists
         run: |
           ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "mkdir -p ${{ secrets.EC2_APP_DIR }}"
-
       - name: Deploy JAR to EC2
         run: |
           scp -o StrictHostKeyChecking=no -i key.pem \
             build/libs/${{ secrets.APP_NAME }} \
             ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_APP_DIR }}/${{ secrets.APP_NAME }}
-
-      - name: Deploy JAR to EC2 and Run
+      - name: Run Spring Boot app on EC2
         run: |
-          scp -i key.pem -o StrictHostKeyChecking=no build/libs/${{ secrets.APP_NAME }} ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_APP_DIR }}/${{ secrets.APP_NAME }}
           ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-          # 기존 프로세스 종료
-          pkill -f "${{ secrets.APP_NAME }}" || true
+            pkill -f "${{ secrets.APP_NAME }}" || true  # 기존 프로세스 종료
 
-          # 프로세스가 완전히 종료될 때까지 대기 (최대 10초)
-          for i in {1..10}; do
-            if ! lsof -i :8082 > /dev/null; then
-              echo "포트 8082 비움 확인"
-              break
-            else
-              echo "포트 8082 사용 중, 대기 중... ($i초)"
-              sleep 1
-            fi
-          done
+            # 프로세스가 완전히 종료될 때까지 대기 (최대 10초)
+            for i in {1..10}; do
+              if ! lsof -i :8081 > /dev/null; then
+                echo "✅ 포트 8081 비움 확인"
+                break
+              else
+                echo "⏳ 포트 8081 사용 중, 대기 중... ($i초)"
+                sleep 1
+              fi
+            done
 
-          # 새 프로세스 실행
-          nohup java -jar ${{ secrets.EC2_APP_DIR }}/${{ secrets.APP_NAME }} --server.port=8082 > ~/app.log 2>&1 &
+            nohup java -jar ${{ secrets.EC2_APP_DIR }}/${{ secrets.APP_NAME }} --server.port=8081 > ~/app.log 2>&1 &
           EOF
