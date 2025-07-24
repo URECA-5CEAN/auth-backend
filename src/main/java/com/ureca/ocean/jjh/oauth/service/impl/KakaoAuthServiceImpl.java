@@ -93,7 +93,7 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
         KakaoUserInfoDto userInfo = getUserInfo(accessToken);
 
         // 회원가입 DTO 구성
-        SignUpRequestDto signupRequestDto = SignUpRequestDto.builder()
+        SignUpRequestDto signUpRequestDto = SignUpRequestDto.builder()
                 .email(userInfo.getKakaoAccount().getEmail())
                 .name(userInfo.getKakaoAccount().getName())
                 .nickname(userInfo.getKakaoAccount().getProfile().getNickName())
@@ -101,9 +101,18 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
                 .password("{kakao}" + UUID.randomUUID())  // 패스워드 대체 마커
                 .build();
 
+        // 디버깅 코드
+        System.out.println("🔍 [회원가입 요청 DTO]");
+        System.out.println("📧 email: " + signUpRequestDto.getEmail());
+        System.out.println("👤 name: " + signUpRequestDto.getName());
+        System.out.println("📝 nickname: " + signUpRequestDto.getNickname());
+        System.out.println("🚻 gender: " + signUpRequestDto.getGender());
+        System.out.println("🔒 password: " + signUpRequestDto.getPassword());
         try {
-            userClient.signup(signupRequestDto);
+            userClient.signup(signUpRequestDto);
         } catch (Exception e) {
+            System.out.println("❌ userClient.signup() 실패");
+            e.printStackTrace(); // 오류 상세 로그 출력
             throw new AuthException(ErrorCode.USER_SIGNUP_FAIL);
         }
 

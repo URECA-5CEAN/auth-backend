@@ -31,14 +31,33 @@ public class UserClient {
         return userDto;
     }
 
-    public UserDto signup(SignUpRequestDto signupRequestDto) {
+    public UserDto signup(SignUpRequestDto signUpRequestDto) {
         String url = DomainConstant.USER_URL + "api/user/signup";
-        ResponseEntity<BaseResponseDto<UserDto>> response = restTemplate.exchange(
-            url,
-            HttpMethod.POST,
-            new org.springframework.http.HttpEntity<>(signupRequestDto),
-            new ParameterizedTypeReference<BaseResponseDto<UserDto>>() {}
-        );
-        return response.getBody().getData();
+
+        // Debug log for outgoing request
+        log.debug("📤 [UserClient] 회원가입 요청 URL: {}", url);
+        log.debug("📧 email: {}", signUpRequestDto.getEmail());
+        log.debug("👤 name: {}", signUpRequestDto.getName());
+        log.debug("📝 nickname: {}", signUpRequestDto.getNickname());
+        log.debug("🚻 gender: {}", signUpRequestDto.getGender());
+        log.debug("🔒 password: {}", signUpRequestDto.getPassword());
+
+        try {
+            ResponseEntity<BaseResponseDto<UserDto>> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                new org.springframework.http.HttpEntity<>(signUpRequestDto),
+                new ParameterizedTypeReference<BaseResponseDto<UserDto>>() {}
+            );
+
+            if (response.getBody() == null || response.getBody().getData() == null) {
+                throw new RuntimeException("❗️응답 본문이 null입니다.");
+            }
+
+            return response.getBody().getData();
+        } catch (Exception e) {
+            log.error("❌ [UserClient] 회원가입 요청 실패", e);
+            throw e;
+        }
     }
 }
