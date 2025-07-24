@@ -11,6 +11,7 @@ import com.ureca.ocean.jjh.oauth.dto.KakaoTokenResponseDto;
 import com.ureca.ocean.jjh.oauth.dto.KakaoUserInfoDto;
 import com.ureca.ocean.jjh.oauth.dto.SignUpRequestDto;
 import com.ureca.ocean.jjh.oauth.service.KakaoAuthService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -26,10 +27,11 @@ import java.util.Date;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class KakaoAuthServiceImpl implements KakaoAuthService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    UserClient userClient;
+    private final UserClient userClient;
 
     @Value("${kakao.client-id}")
     private String clientId;
