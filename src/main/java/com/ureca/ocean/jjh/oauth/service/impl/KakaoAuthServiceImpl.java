@@ -97,7 +97,7 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
                 .email(userInfo.getKakaoAccount().getEmail())
                 .name(userInfo.getKakaoAccount().getName())
                 .nickname(userInfo.getKakaoAccount().getProfile().getNickName())
-                .gender(Gender.valueOf(userInfo.getKakaoAccount().getGender()))
+                .gender(getGenderSafely(userInfo.getKakaoAccount().getGender()))
                 .password("{kakao}" + UUID.randomUUID())  // 패스워드 대체 마커
                 .build();
 
@@ -215,5 +215,13 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
                 .expiration(Date.from(now.plus(1, ChronoUnit.HOURS)))
                 .signWith(Keys.hmacShaKeyFor(jwtSecret.getBytes()), SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    private Gender getGenderSafely(String genderStr) {
+        try {
+            return Gender.valueOf(genderStr.toUpperCase());
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new AuthException(ErrorCode.INVALID_GENDER);
+        }
     }
 }
