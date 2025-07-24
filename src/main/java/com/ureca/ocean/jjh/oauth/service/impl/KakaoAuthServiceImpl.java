@@ -49,41 +49,40 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
 
 
     @Override
+    @Override
     public KakaoLoginResultDto getKakaoLogin(String code) {
         String accessToken = getAccessToken(code);
         KakaoUserInfoDto userInfo = getUserInfo(accessToken);
-        KakaoLoginResultDto kakaoLoginResultDto;
 
-        // 이메일 중복 여부 확인
         try {
             UserNicknameDto existingUser = userClient.getUserAndNicknameByEmail(userInfo.getKakaoAccount().getEmail());
 
-            // 닉네임이 [Kakao]로 시작하는지 확인
-            if (existingUser.getNickname() != null && existingUser.getNickname().startsWith("[Kakao]")) {
-                // 로그인 처리
-                String jwt = createJwtToken(userInfo.getKakaoAccount().getEmail());
-
+            String nickname = existingUser.getNickname();
+            if (nickname != null && nickname.startsWith("[Kakao]")) {
+                // 카카오 유저 - 로그인 처리
+                String jwt = createJwtToken(existingUser.getEmail());
                 return KakaoLoginResultDto.builder()
                         .result("login success")
-                        .name(userInfo.getKakaoAccount().getName())
-                        .nickname(existingUser.getNickname())
-                        .email(userInfo.getKakaoAccount().getEmail())
-                        .gender(userInfo.getKakaoAccount().getGender())
+                        .name(existingUser.getName())
+                        .nickname(nickname)
+                        .email(existingUser.getEmail())
+                        .gender(existingUser.getGender().name())
                         .token(jwt)
                         .build();
             } else {
+                // 일반 유저 존재 - 오류 처리
                 throw new AuthException(ErrorCode.NORMAL_USER_ALREADY_EXIST);
             }
         } catch (Exception ex) {
             if (ex.getMessage() != null && ex.getMessage().contains("404")) {
-                // 이메일이 없을 경우 회원가입 유도
+                // 이메일 없음 - 회원가입 유도
                 return KakaoLoginResultDto.builder()
                         .result("signup required")
                         .name(userInfo.getKakaoAccount().getName())
                         .nickname("[Kakao] " + userInfo.getKakaoAccount().getProfile().getNickName())
                         .email(userInfo.getKakaoAccount().getEmail())
                         .gender(userInfo.getKakaoAccount().getGender())
-                        .token(accessToken) // accessToken 그대로 반환
+                        .token(accessToken)
                         .build();
             } else {
                 throw new AuthException(ErrorCode.KAKAO_LOGIN_FAIL);
