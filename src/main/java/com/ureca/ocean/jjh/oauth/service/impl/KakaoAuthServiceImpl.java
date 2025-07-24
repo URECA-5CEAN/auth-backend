@@ -11,7 +11,6 @@ import com.ureca.ocean.jjh.oauth.dto.KakaoTokenResponseDto;
 import com.ureca.ocean.jjh.oauth.dto.KakaoUserInfoDto;
 import com.ureca.ocean.jjh.oauth.dto.SignUpRequestDto;
 import com.ureca.ocean.jjh.oauth.service.KakaoAuthService;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -67,7 +66,8 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
                     userInfo.getKakaoAccount().getProfile().getNickName(),
                     userInfo.getKakaoAccount().getEmail(),
                     userInfo.getKakaoAccount().getGender(),
-                    null
+                    // token : accessToken
+                    accessToken
             );
             return kakaoLoginResultDto;
         }
