@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import lombok.Builder;
 import lombok.Data;
+import org.apache.catalina.User;
 
 @Data
 //@Builder 없다. 

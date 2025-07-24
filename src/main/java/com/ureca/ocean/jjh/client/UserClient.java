@@ -1,5 +1,6 @@
 package com.ureca.ocean.jjh.client;
 
+import com.ureca.ocean.jjh.client.dto.UserNicknameDto;
 import com.ureca.ocean.jjh.common.BaseResponseDto;
 import com.ureca.ocean.jjh.common.constant.DomainConstant;
 import com.ureca.ocean.jjh.client.dto.UserDto;
@@ -17,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 public class UserClient {
     private final RestTemplate restTemplate;
+
     public UserDto getUserByEmail(String email) {
         String url = DomainConstant.USER_URL + "api/user?email="+ email ;
         System.out.println("url : "+ url);
@@ -29,6 +31,20 @@ public class UserClient {
         UserDto userDto = response.getBody().getData();
         log.info("userDto 받은 거 : " + userDto.getPassword() );
         return userDto;
+    }
+
+    // 닉네임을 받아오기 위한 눈물나는 노력
+    public UserNicknameDto getUserAndNicknameByEmail(String email) {
+        String url = DomainConstant.USER_URL + "api/user?email="+ email ;
+        System.out.println("url : "+ url);
+        ResponseEntity<BaseResponseDto<UserNicknameDto>> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<BaseResponseDto<UserNicknameDto>>() {}
+        );
+        UserNicknameDto userNicknameDto = response.getBody().getData();
+        return userNicknameDto;
     }
 
     public UserDto signup(SignUpRequestDto signUpRequestDto) {
