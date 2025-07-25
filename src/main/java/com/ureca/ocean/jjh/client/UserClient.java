@@ -63,4 +63,19 @@ public class UserClient {
             throw e;
         }
     }
+
+    public boolean existsByNickname(String nickname) {
+        String url = DomainConstant.USER_URL + "api/user/isDupNickname?nickname=" + nickname;
+        try {
+            ResponseEntity<BaseResponseDto<Boolean>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<BaseResponseDto<Boolean>>() {}
+            );
+            return Boolean.TRUE.equals(response.getBody().getData());
+        } catch (Exception e) {
+            return false; // fallback: 중복 아님 처리
+        }
+    }
 }

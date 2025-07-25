@@ -91,15 +91,15 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
         KakaoUserInfoDto userInfo = getUserInfo(accessToken);
 
         // 회원가입 DTO 구성
-        String rawPassword = UUID.randomUUID().toString();
-        String encodedPassword = passwordEncoder.encode(rawPassword);
+        String baseNickname = "[Kakao] " + userInfo.getKakaoAccount().getProfile().getNickName();
+        String uniqueNickname = generateUniqueNickname(baseNickname);
 
         SignUpRequestDto signUpRequestDto = SignUpRequestDto.builder()
                 .email(userInfo.getKakaoAccount().getEmail())
                 .name(userInfo.getKakaoAccount().getName())
-                .nickname("[Kakao] " + userInfo.getKakaoAccount().getProfile().getNickName())
+                .nickname(uniqueNickname)
                 .gender(getGenderSafely(userInfo.getKakaoAccount().getGender()))
-                .password(encodedPassword)
+                .password(passwordEncoder.encode(UUID.randomUUID().toString()))
                 .build();
 
         try {
@@ -113,11 +113,22 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
 
         return KakaoLoginResultDto.builder()
                 .name(userInfo.getKakaoAccount().getName())
-                .nickname("[Kakao] " + userInfo.getKakaoAccount().getProfile().getNickName())
+                .nickname(uniqueNickname)
                 .email(userInfo.getKakaoAccount().getEmail())
                 .gender(userInfo.getKakaoAccount().getGender())
                 .token(jwt)
                 .build();
+    }
+
+    private String generateUniqueNickname(String baseNickname) {
+        String nickname = baseNickname;
+        int suffix = 1;
+
+        while (userClient.existsByNickname(nickname)) {
+            nickname = baseNickname + suffix;
+            suffix++;
+        }
+        return nickname;
     }
 
     private String getAccessToken(String code) {
