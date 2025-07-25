@@ -73,10 +73,21 @@ jobs:
               echo "✅ 포트 8081 비움 확인"
               break
             else
-              echo "⏳ 포트 8081 사용 중, 대기 중... ($i초)"
+              echo "⏳ 포트 8081 사용 중, 대기 중... (\${i}초)"
               sleep 1
             fi
           done
 
           nohup java -jar ${{ secrets.EC2_APP_DIR }}/${{ secrets.APP_NAME }} --server.port=8081 > ~/app.log 2>&1 &
+
+          # 새 프로세스가 정상 기동되었는지 확인 (최대 10초 대기)
+          for i in {1..10}; do
+            if lsof -i :8081 > /dev/null; then
+              echo "🚀 Spring Boot 앱 실행 완료"
+              break
+            else
+              echo "⌛ 앱 기동 대기 중... (\${i}초)"
+              sleep 1
+            fi
+          done
           EOF
