@@ -63,7 +63,7 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
                 return KakaoLoginResultDto.builder()
                         .result("login success")
                         .name(userInfo.getKakaoAccount().getName())
-                        .nickname(nickname)
+                        .nickname(existingUser.getNickname())
                         .email(userInfo.getKakaoAccount().getEmail())
                         .gender(userInfo.getKakaoAccount().getGender())
                         .token(jwt)
