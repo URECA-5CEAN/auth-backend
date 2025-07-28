@@ -29,37 +29,62 @@ public class OAuthController {
         log.info("인가 코드 수신: {}", code);
 
         // KakaoTokenResponseDto, KakaoUserResponseDto 등은 kakaoAuthService 내부에서 대체
-        KakaoLoginResultDto kakaoLoginResultDto = kakaoAuthService.getKakaoLogin(code);
-        // 로그인 성공 시 JWT, 회원가입 필요 시 Kakao accessToken 반환 구조
+        try {
+            KakaoLoginResultDto kakaoLoginResultDto = kakaoAuthService.getKakaoLogin(code);
+            // 응답 JSON 구성
+            java.util.Map<String, Object> result = new java.util.HashMap<>();
+            result.put("result", kakaoLoginResultDto.getResult());
+            result.put("name", kakaoLoginResultDto.getName());
+            result.put("nickname", kakaoLoginResultDto.getNickname());
+            result.put("email", kakaoLoginResultDto.getEmail());
+            result.put("gender", kakaoLoginResultDto.getGender());
+            result.put("token", kakaoLoginResultDto.getToken());
 
-        // 응답 JSON 구성
-        java.util.Map<String, Object> result = new java.util.HashMap<>();
-        result.put("result", kakaoLoginResultDto.getResult());
-        result.put("name", kakaoLoginResultDto.getName());
-        result.put("nickname", kakaoLoginResultDto.getNickname());
-        result.put("email", kakaoLoginResultDto.getEmail());
-        result.put("gender", kakaoLoginResultDto.getGender());
-        result.put("token", kakaoLoginResultDto.getToken());
+            com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            objectMapper.configure(com.fasterxml.jackson.core.JsonGenerator.Feature.ESCAPE_NON_ASCII, false); // 한글 깨짐 방지
+            String json = objectMapper.writeValueAsString(result);
 
-        com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
-        objectMapper.configure(com.fasterxml.jackson.core.JsonGenerator.Feature.ESCAPE_NON_ASCII, false); // 한글 깨짐 방지
-        String json = objectMapper.writeValueAsString(result);
+            response.setContentType("text/html; charset=UTF-8");
+            response.getWriter().write(
+                    "<!DOCTYPE html>\n" +
+                    "<html><head><meta charset='UTF-8'><title>Kakao Login</title></head><body>" +
+                    "<script>\n" +
+                    "  const result = " + json + ";\n" +
+                    "  if (window.opener) {\n" +
+                    "    window.opener.postMessage(result, '*');\n" +
+                    "    window.close();\n" +
+                    "  } else {\n" +
+                    "    document.body.innerText = '로그인 완료: 콘솔을 확인하세요.';\n" +
+                    "    console.log(result);\n" +
+                    "  }\n" +
+                    "</script></body></html>"
+            );
+        } catch (com.ureca.ocean.jjh.exception.AuthException e) {
+            java.util.Map<String, Object> error = new java.util.HashMap<>();
+            error.put("statusCode", e.getErrorCode().getCode());
+            error.put("message", e.getErrorCode().getMessage());
+            error.put("detail", e.getMessage());
 
-        response.setContentType("text/html; charset=UTF-8");
-        response.getWriter().write(
-                "<!DOCTYPE html>\n" +
-                "<html><head><meta charset='UTF-8'><title>Kakao Login</title></head><body>" +
-                "<script>\n" +
-                "  const result = " + json + ";\n" +
-                "  if (window.opener) {\n" +
-                "    window.opener.postMessage(result, '*');\n" +
-                "    window.close();\n" +
-                "  } else {\n" +
-                "    document.body.innerText = '로그인 완료: 콘솔을 확인하세요.';\n" +
-                "    console.log(result);\n" +
-                "  }\n" +
-                "</script></body></html>"
-        );
+            com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            objectMapper.configure(com.fasterxml.jackson.core.JsonGenerator.Feature.ESCAPE_NON_ASCII, false);
+            String errorJson = objectMapper.writeValueAsString(error);
+
+            response.setContentType("text/html; charset=UTF-8");
+            response.getWriter().write(
+                    "<!DOCTYPE html>\n" +
+                    "<html><head><meta charset='UTF-8'><title>Kakao Login Error</title></head><body>" +
+                    "<script>\n" +
+                    "  const error = " + errorJson + ";\n" +
+                    "  if (window.opener) {\n" +
+                    "    window.opener.postMessage(error, '*');\n" +
+                    "    window.close();\n" +
+                    "  } else {\n" +
+                    "    document.body.innerText = '로그인 실패: 콘솔을 확인하세요.';\n" +
+                    "    console.error(error);\n" +
+                    "  }\n" +
+                    "</script></body></html>"
+            );
+        }
     }
 
     @Operation(summary = "카카오로 회원가입", description = "[개발완료] accessToken에 콜백에서 받았던 token을 넣으세요")
