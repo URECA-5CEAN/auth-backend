@@ -60,7 +60,7 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
             if (existingUser.getNickname() != null && existingUser.getNickname().startsWith("[Kakao]")) {
                 // 카카오 유저 - 로그인 처리
                 String jwt = createJwtToken(existingUser.getEmail());
-                return KakaoLoginResultDto.builder()
+                KakaoLoginResultDto result = KakaoLoginResultDto.builder()
                         .result("login success")
                         .name(userInfo.getKakaoAccount().getName())
                         .nickname(nickname)
@@ -68,20 +68,36 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
                         .gender(userInfo.getKakaoAccount().getGender())
                         .token(jwt)
                         .build();
+                try {
+                    org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KakaoAuthServiceImpl.class);
+                    log.info("✅ 로그인 성공 결과: {}", objectMapper.writeValueAsString(result));
+                } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                    org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KakaoAuthServiceImpl.class);
+                    log.warn("로그인 결과 로깅 실패", e);
+                }
+                return result;
             } else {
                 // 일반 유저 존재 - 오류 처리
                 throw new AuthException(ErrorCode.NORMAL_USER_ALREADY_EXIST);
             }
         } catch (Exception ex) {
-                // 이메일 없음 - 회원가입 유도
-                return KakaoLoginResultDto.builder()
-                        .result("signup required")
-                        .name(userInfo.getKakaoAccount().getName())
-                        .nickname("[Kakao] " + userInfo.getKakaoAccount().getProfile().getNickName())
-                        .email(userInfo.getKakaoAccount().getEmail())
-                        .gender(userInfo.getKakaoAccount().getGender())
-                        .token(accessToken)
-                        .build();
+            // 이메일 없음 - 회원가입 유도
+            KakaoLoginResultDto result = KakaoLoginResultDto.builder()
+                    .result("signup required")
+                    .name(userInfo.getKakaoAccount().getName())
+                    .nickname("[Kakao] " + userInfo.getKakaoAccount().getProfile().getNickName())
+                    .email(userInfo.getKakaoAccount().getEmail())
+                    .gender(userInfo.getKakaoAccount().getGender())
+                    .token(accessToken)
+                    .build();
+            try {
+                org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KakaoAuthServiceImpl.class);
+                log.info("🔔 회원가입 필요 응답: {}", objectMapper.writeValueAsString(result));
+            } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KakaoAuthServiceImpl.class);
+                log.warn("회원가입 응답 로깅 실패", e);
+            }
+            return result;
         }
     }
 
