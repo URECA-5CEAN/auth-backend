@@ -6,6 +6,7 @@ import com.ureca.ocean.jjh.client.dto.UserNicknameDto;
 import com.ureca.ocean.jjh.common.entity.enums.Gender;
 import com.ureca.ocean.jjh.common.exception.ErrorCode;
 import com.ureca.ocean.jjh.exception.AuthException;
+import com.ureca.ocean.jjh.jwt.JwtUtil;
 import com.ureca.ocean.jjh.oauth.dto.KakaoLoginResultDto;
 import com.ureca.ocean.jjh.oauth.dto.KakaoTokenResponseDto;
 import com.ureca.ocean.jjh.oauth.dto.KakaoUserInfoDto;
@@ -32,6 +33,7 @@ import java.util.UUID;
 public class KakaoAuthServiceImpl implements KakaoAuthService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JwtUtil jwtUtil;
     private final UserClient userClient;
     private final PasswordEncoder passwordEncoder;
 
@@ -70,7 +72,7 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
 
             if (existingUser.getNickname().startsWith("[Kakao]")) {
                 // 카카오 유저 - 로그인 처리
-                String jwt = createJwtToken(existingUser.getEmail());
+                String jwt = jwtUtil.createToken(existingUser.getEmail());
                 return KakaoLoginResultDto.builder()
                         .result("login success")
                         .name(userInfo.getKakaoAccount().getName())
@@ -112,7 +114,7 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
         }
 
         // 회원가입 후 JWT 발급
-        String jwt = createJwtToken(userInfo.getKakaoAccount().getEmail());
+        String jwt = jwtUtil.createToken(userInfo.getKakaoAccount().getEmail());
 
         return KakaoLoginResultDto.builder()
                 .name(userInfo.getKakaoAccount().getName())
@@ -204,16 +206,6 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
         } catch (org.springframework.web.client.RestClientException e) {
             throw new AuthException(ErrorCode.KAKAO_LOGIN_FAIL);
         }
-    }
-
-    private String createJwtToken(String email) {
-        Instant now = Instant.now();
-        return Jwts.builder()
-                .subject(email)
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plus(1, ChronoUnit.HOURS)))
-                .signWith(Keys.hmacShaKeyFor(jwtSecret.getBytes()), SignatureAlgorithm.HS256)
-                .compact();
     }
 
     private Gender getGenderSafely(String genderStr) {
