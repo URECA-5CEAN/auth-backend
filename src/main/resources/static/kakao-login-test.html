@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>카카오 로그인 테스트</title>
+</head>
+<body>
+<h2>카카오 로그인 팝업 테스트</h2>
+<button onclick="openKakaoLogin()">카카오 로그인</button>
+
+<script>
+    function openKakaoLogin() {
+        const clientId = "524aef0330795198299d52f0dfe98b0b";
+        const redirectUri = "http://15.164.81.45/api/auth/kakao/callback";
+        const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code`;
+        window.open(kakaoAuthUrl, "_blank", "width=600,height=700");
+    }
+
+    window.addEventListener("message", function(event) {
+        console.log("📩 카카오 로그인 결과 수신:", event.data);
+        alert("로그인 결과: " + JSON.stringify(event.data));
+    }, false);
+</script>
+</body>
+</html>
