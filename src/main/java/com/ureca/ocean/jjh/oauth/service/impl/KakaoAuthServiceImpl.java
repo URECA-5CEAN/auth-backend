@@ -56,8 +56,19 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
         try {
             UserNicknameDto existingUser = userClient.getUserAndNicknameByEmail(userInfo.getKakaoAccount().getEmail());
 
-            String nickname = "[Kakao] " + userInfo.getKakaoAccount().getProfile().getNickName();
-            if (existingUser.getNickname() != null && existingUser.getNickname().startsWith("[Kakao]")) {
+            if (existingUser == null || existingUser.getNickname() == null) {
+                // 이메일 없음 또는 닉네임 없음 - 회원가입 유도
+                return KakaoLoginResultDto.builder()
+                        .result("signup required")
+                        .name(userInfo.getKakaoAccount().getName())
+                        .nickname("[Kakao] " + userInfo.getKakaoAccount().getProfile().getNickName())
+                        .email(userInfo.getKakaoAccount().getEmail())
+                        .gender(userInfo.getKakaoAccount().getGender())
+                        .token(accessToken)
+                        .build();
+            }
+
+            if (existingUser.getNickname().startsWith("[Kakao]")) {
                 // 카카오 유저 - 로그인 처리
                 String jwt = createJwtToken(existingUser.getEmail());
                 return KakaoLoginResultDto.builder()
@@ -74,16 +85,6 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
             }
         } catch (AuthException e) {
             throw e;
-        } catch (Exception ex) {
-            // 이메일 없음 - 회원가입 유도
-            return KakaoLoginResultDto.builder()
-                    .result("signup required")
-                    .name(userInfo.getKakaoAccount().getName())
-                    .nickname("[Kakao] " + userInfo.getKakaoAccount().getProfile().getNickName())
-                    .email(userInfo.getKakaoAccount().getEmail())
-                    .gender(userInfo.getKakaoAccount().getGender())
-                    .token(accessToken)
-                    .build();
         }
     }
 
