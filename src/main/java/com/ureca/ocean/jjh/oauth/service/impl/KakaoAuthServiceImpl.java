@@ -60,7 +60,7 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
             if (existingUser.getNickname() != null && existingUser.getNickname().startsWith("[Kakao]")) {
                 // 카카오 유저 - 로그인 처리
                 String jwt = createJwtToken(existingUser.getEmail());
-                KakaoLoginResultDto result = KakaoLoginResultDto.builder()
+                return KakaoLoginResultDto.builder()
                         .result("login success")
                         .name(userInfo.getKakaoAccount().getName())
                         .nickname(nickname)
@@ -68,21 +68,15 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
                         .gender(userInfo.getKakaoAccount().getGender())
                         .token(jwt)
                         .build();
-                try {
-                    org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KakaoAuthServiceImpl.class);
-                    log.info("✅ 로그인 성공 결과: {}", objectMapper.writeValueAsString(result));
-                } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-                    org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KakaoAuthServiceImpl.class);
-                    log.warn("로그인 결과 로깅 실패", e);
-                }
-                return result;
             } else {
                 // 일반 유저 존재 - 오류 처리
                 throw new AuthException(ErrorCode.NORMAL_USER_ALREADY_EXIST);
             }
+        } catch (AuthException e) {
+            throw e;
         } catch (Exception ex) {
             // 이메일 없음 - 회원가입 유도
-            KakaoLoginResultDto result = KakaoLoginResultDto.builder()
+            return KakaoLoginResultDto.builder()
                     .result("signup required")
                     .name(userInfo.getKakaoAccount().getName())
                     .nickname("[Kakao] " + userInfo.getKakaoAccount().getProfile().getNickName())
@@ -90,14 +84,6 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
                     .gender(userInfo.getKakaoAccount().getGender())
                     .token(accessToken)
                     .build();
-            try {
-                org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KakaoAuthServiceImpl.class);
-                log.info("🔔 회원가입 필요 응답: {}", objectMapper.writeValueAsString(result));
-            } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-                org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KakaoAuthServiceImpl.class);
-                log.warn("회원가입 응답 로깅 실패", e);
-            }
-            return result;
         }
     }
 
@@ -171,16 +157,12 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
                 String.class
             );
 
-            System.out.println("카카오 accessToken 응답: " + response.getBody());
-
             KakaoTokenResponseDto tokenResponse = objectMapper.readValue(response.getBody(), KakaoTokenResponseDto.class);
             if (tokenResponse == null || tokenResponse.getAccessToken() == null) {
                 throw new AuthException(ErrorCode.KAKAO_RESPONSE_FAIL);
             }
             return tokenResponse.getAccessToken();
         } catch (Exception e) {
-            System.out.println("카카오 accessToken 예외 발생: " + e.getMessage());
-            e.printStackTrace();
             throw new AuthException(ErrorCode.KAKAO_RESPONSE_FAIL);
         }
     }
@@ -194,10 +176,7 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
 
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-        org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KakaoAuthServiceImpl.class);
-
         // exception 처리
-        log.debug("getUserInfo start");
         try {
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<KakaoUserInfoDto> response = restTemplate.exchange(
@@ -210,32 +189,19 @@ public class KakaoAuthServiceImpl implements KakaoAuthService {
             KakaoUserInfoDto userInfo = response.getBody();
 
             if (userInfo == null) {
-                log.error("Kakao userInfo is null");
                 throw new AuthException(ErrorCode.KAKAO_LOGIN_FAIL);
             }
 
             if (userInfo.getKakaoAccount() == null) {
-                log.warn("KakaoAccount is null in response");
+                // do nothing
             } else {
-                log.debug("KakaoAccount info: email={}, gender={}, name={}, phone={}",
-                        userInfo.getKakaoAccount().getEmail(),
-                        userInfo.getKakaoAccount().getGender(),
-                        userInfo.getKakaoAccount().getName(),
-                        userInfo.getKakaoAccount().getPhoneNumber());
-
-                if (userInfo.getKakaoAccount().getProfile() != null) {
-                    log.debug("Profile nickname: {}", userInfo.getKakaoAccount().getProfile().getNickName());
-                } else {
-                    log.warn("Profile is null in KakaoAccount");
-                }
+                // do nothing
             }
 
             return userInfo;
 
         } catch (org.springframework.web.client.RestClientException e) {
             throw new AuthException(ErrorCode.KAKAO_LOGIN_FAIL);
-        } finally {
-            log.debug("getUserInfo end");
         }
     }
 
